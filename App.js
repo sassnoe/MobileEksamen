@@ -3,7 +3,7 @@ import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import LoginScreen from "./LoginScreen";
-import HomeScreen from "./HomeScreen"; // Replace with your Home screen
+import HomeScreen from "./HomeScreen";
 
 const Stack = createStackNavigator();
 
