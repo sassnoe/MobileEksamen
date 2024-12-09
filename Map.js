@@ -60,7 +60,7 @@ const Map = () => {
   }, [radius]);
 
   const fetchParks = async (latitude, longitude, radius) => {
-    const apiKey = "AIzaSyDX4lq5ferq2ll8b9LGgUIzfm28iyswOv8"; //mjaes google openapi key
+    const apiKey = "PLACEMENTHOLDER"; //mjaes google openapi key
     const type = "park";
     const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=${radius}&type=${type}&key=${apiKey}`;
 
