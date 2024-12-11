@@ -5,7 +5,6 @@ import LoginScreen from "./LoginScreen";
 import HomeScreen from "./HomeScreen";
 import SignUpScreen from "./SignUpScreen";
 
-import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import MapScreen from "./Components/MapScreen";
 import ReviewScreen from "./Components/ReviewScreen";
@@ -17,9 +16,6 @@ import { FavoritesProvider } from "./Components/FavoritesContext";
 
 const Stack = createStackNavigator();
 
-
-
-
 const Tab = createBottomTabNavigator();
 
 export default function App() {
@@ -30,13 +26,6 @@ export default function App() {
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="SignUp" component={SignUpScreen} />
       </Stack.Navigator>
-      <FavoritesProvider>
-        <Tab.Navigator>
-          <Tab.Screen name="Map" component={MapScreen} />
-          <Tab.Screen name="Reviews" component={ReviewScreen} />
-          <Tab.Screen name="User" component={UserScreen} />
-        </Tab.Navigator>
-      </FavoritesProvider>
     </NavigationContainer>
   );
 }
@@ -49,3 +38,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 });
+
+// <FavoritesProvider>
+//   <Tab.Navigator>
+//     <Tab.Screen name="Map" component={MapScreen} />
+//     <Tab.Screen name="Reviews" component={ReviewScreen} />
+//     <Tab.Screen name="User" component={UserScreen} />
+//   </Tab.Navigator>
+// </FavoritesProvider>;
