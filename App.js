@@ -1,5 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View } from "react-native";
+import { FavoritesProvider } from "./Components/FavoritesContext";
 
 import * as React from "react";
 import { NavigationContainer } from "@react-navigation/native";
@@ -13,11 +14,13 @@ const Tab = createBottomTabNavigator();
 export default function App() {
   return (
     <NavigationContainer>
-      <Tab.Navigator>
-        <Tab.Screen name="Map" component={MapScreen} />
-        <Tab.Screen name="Reviews" component={ReviewScreen} />
-        <Tab.Screen name="User" component={UserScreen} />
-      </Tab.Navigator>
+      <FavoritesProvider>
+        <Tab.Navigator>
+          <Tab.Screen name="Map" component={MapScreen} />
+          <Tab.Screen name="Reviews" component={ReviewScreen} />
+          <Tab.Screen name="User" component={UserScreen} />
+        </Tab.Navigator>
+      </FavoritesProvider>
     </NavigationContainer>
   );
 }
