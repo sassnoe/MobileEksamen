@@ -30,7 +30,7 @@ export default function App() {
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="SignUp" component={SignUpScreen} />
       </Stack.Navigator>
-            <FavoritesProvider>
+      <FavoritesProvider>
         <Tab.Navigator>
           <Tab.Screen name="Map" component={MapScreen} />
           <Tab.Screen name="Reviews" component={ReviewScreen} />
