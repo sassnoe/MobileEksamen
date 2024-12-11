@@ -1,24 +1,11 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, Button, Alert } from "react-native";
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-} from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "./firebase";
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  const handleSignUp = async () => {
-    try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      Alert.alert("Success", "User registered successfully");
-      navigation.navigate("Home");
-    } catch (error) {
-      Alert.alert("Error", error.message);
-    }
-  };
 
   const handleLogin = async () => {
     try {
@@ -32,7 +19,7 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <View style={{ padding: 16 }}>
-      <Text style={{ fontSize: 24, marginBottom: 16 }}>Login or Sign Up</Text>
+      <Text style={{ fontSize: 24, marginBottom: 16 }}>Login</Text>
       <TextInput
         placeholder="Email"
         value={email}
@@ -52,7 +39,11 @@ const LoginScreen = ({ navigation }) => {
         }}
       />
       <Button title="Login" onPress={handleLogin} />
-      <Button title="Sign Up" onPress={handleSignUp} color="green" />
+      <Button
+        title="Sign Up"
+        onPress={() => navigation.navigate("SignUp")}
+        color="green"
+      />
     </View>
   );
 };
