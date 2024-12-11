@@ -4,7 +4,7 @@ import MapView, { Marker } from "react-native-maps";
 import { useState, useRef, useEffect } from "react";
 import * as Location from "expo-location";
 import axios from "axios";
-import Slider from "@react-native-community/slider"; // Import the slider
+import Slider from "@react-native-community/slider";
 
 const Map = () => {
   const [markers, setMarkers] = useState([]);
@@ -14,7 +14,7 @@ const Map = () => {
     latitudeDelta: 20,
     longitudeDelta: 20,
   });
-  const [radius, setRadius] = useState(50000); // Default radius 50km
+  const [radius, setRadius] = useState(50000); // Default 50km radius
 
   const mapView = useRef(null);
   const locationSubscribtion = useRef(null);
@@ -60,7 +60,7 @@ const Map = () => {
   }, [radius]);
 
   const fetchParks = async (latitude, longitude, radius) => {
-    const apiKey = "PLACEMENTHOLDER"; //mjaes google openapi key
+    const apiKey = "PLACEMENTHOLDER";
     const type = "park";
     const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=${radius}&type=${type}&key=${apiKey}`;
 
