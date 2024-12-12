@@ -6,56 +6,59 @@ import * as Location from "expo-location";
 import axios from "axios";
 import Slider from "@react-native-community/slider";
 import { API_KEY } from "../config.js";
+import { database } from "../firebase.js";
+import { Button } from "react-native-web";
 
 const MapScreen = () => {
-    const [markers, setMarkers] = useState([]);
-    const [region, setRegion] = useState({
-        latitude: 55,
-        longitude: 12,
-        latitudeDelta: 20,
-        longitudeDelta: 20,
-    });
-    const [radius, setRadius] = useState(50000); // Default radius 50km
+  const [markers, setMarkers] = useState([]);
+  const [region, setRegion] = useState({
+    latitude: 55,
+    longitude: 12,
+    latitudeDelta: 20,
+    longitudeDelta: 20,
+  });
 
-    const mapView = useRef(null);
-    const locationSubscribtion = useRef(null);
+  const [radius, setRadius] = useState(50000); // Default radius 50km
 
-    useEffect(() => {
-        async function startListening() {
-            let { status } = await Location.requestForegroundPermissionsAsync(); // ask to use current location
-            if (status != "granted") {
-                alert("No access to location");
-                return;
-            }
-            locationSubscribtion.current = await Location.watchPositionAsync(
-                {
-                    distanceInterval: 100,
-                    accuracy: Location.Accuracy.High,
-                },
-                (location) => {
-                    const newRegion = {
-                        latitude: location.coords.latitude,
-                        longitude: location.coords.longitude,
-                        latitudeDelta: 0.0922,
-                        longitudeDelta: 0.0421,
-                    };
-                    setRegion(newRegion);
-                    if (mapView.current) {
-                        mapView.current.animateToRegion(newRegion);
-                    }
-                    console.log("Fetching parks for location:", location.coords.latitude, location.coords.longitude);
-                    fetchParks(location.coords.latitude, location.coords.longitude, radius);
-                }
-            );
+  const mapView = useRef(null);
+  const locationSubscribtion = useRef(null);
+
+  useEffect(() => {
+    async function startListening() {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status != "granted") {
+        alert("No access to location");
+        return;
+      }
+      locationSubscribtion.current = await Location.watchPositionAsync(
+        {
+          distanceInterval: 100,
+          accuracy: Location.Accuracy.High,
+        },
+        (location) => {
+          const newRegion = {
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          };
+          setRegion(newRegion);
+          if (mapView.current) {
+            mapView.current.animateToRegion(newRegion);
+          }
+          console.log("Fetching parks for location:", location.coords.latitude, location.coords.longitude);
+          fetchParks(location.coords.latitude, location.coords.longitude, radius);
         }
+      );
+    }
 
-        startListening();
-        return () => {
-            if (locationSubscribtion.current) {
-                locationSubscribtion.current.remove();
-            }
-        };
-    }, [radius]);
+    startListening();
+    return () => {
+      if (locationSubscribtion.current) {
+        locationSubscribtion.current.remove();
+      }
+    };
+  }, [radius]);
 
     const fetchParks = async (latitude, longitude, radius) => {
         if (radius < 10000) {
@@ -65,25 +68,39 @@ const MapScreen = () => {
         const type = "park";
         const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=${radius}&type=${type}&key=${API_KEY}`;
 
-        try {
-            const response = await axios.get(url);
-            const parks = response.data.results;
-            console.log("Parks fetched:", parks);
-            const newMarkers = parks.map((park) => ({
-                coordinate: {
-                    latitude: park.geometry.location.lat,
-                    longitude: park.geometry.location.lng,
-                },
-                key: park.place_id,
-                title: park.name,
-                description: park.vicinity,
-            }));
-            console.log("Markers created:", newMarkers);
-            setMarkers(newMarkers);
-        } catch (error) {
-            console.error("Error fetching parks: ", error);
-        }
-    };
+    try {
+      const response = await axios.get(url);
+      const parks = response.data.results;
+      console.log("Parks fetched:", parks);
+      const newMarkers = parks.map((park) => ({
+        coordinate: {
+          latitude: park.geometry.location.lat,
+          longitude: park.geometry.location.lng,
+        },
+        key: park.place_id,
+        title: park.name,
+        description: park.vicinity,
+      }));
+      console.log("Markers created:", newMarkers);
+      setMarkers(newMarkers);
+    } catch (error) {
+      console.error("Error fetching parks: ", error);
+    }
+  };
+
+  const addToFavorites = async (userId, placeId, placeDetails) => {
+    try {
+      await database.ref(`users/${userId}/favorites`).push({
+        placeId: placeId,
+        name: placeDetails.name,
+        type: placeDetails.types[0], // Hovedkategori
+        location: placeDetails.geometry.location, // Koordinater
+      });
+      console.log("Location added to favorites!");
+    } catch (error) {
+      console.error("Error adding to favorites:", error);
+    }
+  };
 
     return (
       <View style={styles.container}>
