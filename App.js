@@ -7,7 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 import LoginScreen from "./LoginScreen";
 import HomeScreen from "./HomeScreen";
 import SignUpScreen from "./SignUpScreen";
-import Map from "./Map";
+import MapScreen from "./Components/MapScreen";
 import ReviewScreen from "./Components/ReviewScreen";
 import UserScreen from "./Components/UserScreen";
 import { FavoritesProvider } from "./Components/FavoritesContext";
