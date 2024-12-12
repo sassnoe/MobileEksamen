@@ -4,7 +4,7 @@ import MapView, { Marker, Callout } from "react-native-maps";
 import { useState, useRef, useEffect } from "react";
 import * as Location from "expo-location";
 import axios from "axios";
-import Slider from "@react-native-community/slider"; // Import the slider
+import Slider from "@react-native-community/slider";
 import { API_KEY } from "../config.js";
 
 const MapScreen = () => {
@@ -22,7 +22,7 @@ const MapScreen = () => {
 
     useEffect(() => {
         async function startListening() {
-            let { status } = await Location.requestForegroundPermissionsAsync();
+            let { status } = await Location.requestForegroundPermissionsAsync(); // ask to use current location
             if (status != "granted") {
                 alert("No access to location");
                 return;
@@ -58,6 +58,10 @@ const MapScreen = () => {
     }, [radius]);
 
     const fetchParks = async (latitude, longitude, radius) => {
+        if (radius < 10000) {
+          console.log("Radius too low, not fetching parks.");
+          return;
+        }
         const type = "park";
         const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=${radius}&type=${type}&key=${API_KEY}`;
 
@@ -82,39 +86,42 @@ const MapScreen = () => {
     };
 
     return (
-        <View style={styles.container}>
-            <MapView
-                ref={mapView}
-                style={styles.map}
-                region={region}
-                onRegionChangeComplete={setRegion}
+      <View style={styles.container}>
+        <MapView
+          ref={mapView}
+          style={styles.map}
+          region={region}
+          onRegionChangeComplete={setRegion}
+        >
+          {markers.map((marker) => (
+            <Marker
+              key={marker.key}
+              coordinate={marker.coordinate}
+              title={marker.title}
+              description={marker.description}
             >
-                {markers.map((marker) => (
-                    <Marker
-                        key={marker.key}
-                        coordinate={marker.coordinate}
-                        title={marker.title}
-                        description={marker.description}
-                    >
-                        <Callout>
-                            <Text>{marker.title}</Text>
-                            <Text>{marker.description}</Text>
-                        </Callout>
-                    </Marker>
-                ))}
-            </MapView>
-            <View style={styles.sliderContainer}>
-                <Slider
-                    style={styles.slider}
-                    minimumValue={1000}
-                    maximumValue={100000}
-                    step={1000}
-                    value={radius}
-                    onValueChange={(value) => setRadius(value)}
-                />
-            </View>
-            <StatusBar style="auto" />
+              <Callout>
+                <Text>{marker.title}</Text>
+                <Text>{marker.description}</Text>
+              </Callout>
+            </Marker>
+          ))}
+        </MapView>
+        <View style={styles.sliderContainer}>
+          <Text style={styles.radiusText}>
+            View distance: {(radius / 1000).toFixed(1)} km
+          </Text>
+          <Slider
+            style={styles.slider}
+            minimumValue={10000}
+            maximumValue={100000}
+            step={5000}
+            value={radius}
+            onValueChange={(value) => setRadius(value)}
+          />
         </View>
+        <StatusBar style="auto" />
+      </View>
     );
 };
 
@@ -135,6 +142,10 @@ const styles = StyleSheet.create({
     slider: {
         width: '100%',
     },
+    radiusText: {
+        marginBottom: 10,
+        fontSize: 16,
+    }
 });
 
 export default MapScreen;
