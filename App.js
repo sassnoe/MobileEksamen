@@ -7,10 +7,12 @@ import { Ionicons } from "@expo/vector-icons";
 import LoginScreen from "./LoginScreen";
 import HomeScreen from "./HomeScreen";
 import SignUpScreen from "./SignUpScreen";
-import MapScreen from "./Components/MapScreen";
 import ReviewScreen from "./Components/ReviewScreen";
 import UserScreen from "./Components/UserScreen";
 import { FavoritesProvider } from "./Components/FavoritesContext";
+
+// MapScreen, should select correct file based on platform
+import MapScreen from "./Components/MapScreen";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -49,7 +51,7 @@ export default function App() {
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Login">
           <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Home" component={MainTabs} />
+          <Stack.Screen name="Home" component={MainTabs} options={{ headerShown: false }} />
           <Stack.Screen name="SignUp" component={SignUpScreen} />
         </Stack.Navigator>
       </NavigationContainer>

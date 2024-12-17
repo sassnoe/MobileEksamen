@@ -11,7 +11,7 @@ const LoginScreen = ({ navigation }) => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       Alert.alert("Success", "Logged in successfully");
-      navigation.navigate("Home");
+      navigation.replace("Home");
     } catch (error) {
       Alert.alert("Error", error.message);
     }
@@ -20,12 +20,7 @@ const LoginScreen = ({ navigation }) => {
   return (
     <View style={{ padding: 16 }}>
       <Text style={{ fontSize: 24, marginBottom: 16 }}>Login</Text>
-      <TextInput
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        style={{ marginBottom: 8, padding: 8, borderWidth: 1, borderRadius: 4 }}
-      />
+      <TextInput placeholder="Email" value={email} onChangeText={setEmail} style={{ marginBottom: 8, padding: 8, borderWidth: 1, borderRadius: 4 }} />
       <TextInput
         placeholder="Password"
         value={password}
@@ -39,11 +34,7 @@ const LoginScreen = ({ navigation }) => {
         }}
       />
       <Button title="Login" onPress={handleLogin} />
-      <Button
-        title="Sign Up"
-        onPress={() => navigation.navigate("SignUp")}
-        color="green"
-      />
+      <Button title="Sign Up" onPress={() => navigation.navigate("SignUp")} color="green" />
     </View>
   );
 };

@@ -6,8 +6,11 @@ import * as Location from "expo-location";
 import axios from "axios";
 import Slider from "@react-native-community/slider";
 import { API_KEY } from "../config.js";
-import { database } from "../firebase.js";
 import { Button } from "react-native-web";
+
+//firebase
+import { database } from "../firebase.js";
+import { ref, set } from "firebase/database";
 
 const MapScreen = () => {
   const [markers, setMarkers] = useState([]);
@@ -52,6 +55,22 @@ const MapScreen = () => {
       );
     }
 
+    const addToFavorites = (marker) => {
+      const userId = "currentUserId"; // Replace with method of getting the current user's ID
+      set(ref(database, `favorites/${userId}/${marker.key}`), {
+        latitude: marker.coordinate.latitude,
+        longitude: marker.coordinate.longitude,
+        title: marker.title,
+        description: marker.description,
+      })
+        .then(() => {
+          console.log("Marker added to favorites");
+        })
+        .catch((error) => {
+          console.error("Error adding favorite marker:", error);
+        });
+    };
+
     startListening();
     return () => {
       if (locationSubscribtion.current) {
@@ -60,13 +79,13 @@ const MapScreen = () => {
     };
   }, [radius]);
 
-    const fetchParks = async (latitude, longitude, radius) => {
-        if (radius < 10000) {
-          console.log("Radius too low, not fetching parks.");
-          return;
-        }
-        const type = "park";
-        const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=${radius}&type=${type}&key=${API_KEY}`;
+  const fetchParks = async (latitude, longitude, radius) => {
+    if (radius < 10000) {
+      console.log("Radius too low, not fetching parks.");
+      return;
+    }
+    const type = "park";
+    const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=${radius}&type=${type}&key=${API_KEY}`;
 
     try {
       const response = await axios.get(url);
@@ -88,81 +107,48 @@ const MapScreen = () => {
     }
   };
 
-  const addToFavorites = async (userId, placeId, placeDetails) => {
-    try {
-      await database.ref(`users/${userId}/favorites`).push({
-        placeId: placeId,
-        name: placeDetails.name,
-        type: placeDetails.types[0], // Hovedkategori
-        location: placeDetails.geometry.location, // Koordinater
-      });
-      console.log("Location added to favorites!");
-    } catch (error) {
-      console.error("Error adding to favorites:", error);
-    }
-  };
-
-    return (
-      <View style={styles.container}>
-        <MapView
-          ref={mapView}
-          style={styles.map}
-          region={region}
-          onRegionChangeComplete={setRegion}
-        >
-          {markers.map((marker) => (
-            <Marker
-              key={marker.key}
-              coordinate={marker.coordinate}
-              title={marker.title}
-              description={marker.description}
-            >
-              <Callout>
-                <Text>{marker.title}</Text>
-                <Text>{marker.description}</Text>
-              </Callout>
-            </Marker>
-          ))}
-        </MapView>
-        <View style={styles.sliderContainer}>
-          <Text style={styles.radiusText}>
-            View distance: {(radius / 1000).toFixed(1)} km
-          </Text>
-          <Slider
-            style={styles.slider}
-            minimumValue={10000}
-            maximumValue={100000}
-            step={5000}
-            value={radius}
-            onValueChange={(value) => setRadius(value)}
-          />
-        </View>
-        <StatusBar style="auto" />
+  return (
+    <View style={styles.container}>
+      <MapView ref={mapView} style={styles.map} region={region} onRegionChangeComplete={setRegion}>
+        {markers.map((marker) => (
+          <Marker key={marker.key} coordinate={marker.coordinate} title={marker.title} description={marker.description} onCalloutPress={() => addToFavorites(marker)}>
+            <Callout>
+              <Text>{marker.title}</Text>
+              <Text>{marker.description}</Text>
+            </Callout>
+          </Marker>
+        ))}
+      </MapView>
+      <View style={styles.sliderContainer}>
+        <Text style={styles.radiusText}>View distance: {(radius / 1000).toFixed(1)} km</Text>
+        <Slider style={styles.slider} minimumValue={10000} maximumValue={100000} step={5000} value={radius} onValueChange={(value) => setRadius(value)} />
       </View>
-    );
+      <StatusBar style="auto" />
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    map: {
-        flex: 1,
-    },
-    sliderContainer: {
-        position: 'absolute',
-        bottom: 20, // Adjust this value to give some room at the bottom
-        left: 0,
-        right: 0,
-        paddingHorizontal: 20,
-    },
-    slider: {
-        width: '100%',
-    },
-    radiusText: {
-        marginBottom: 10,
-        fontSize: 16,
-    }
+  container: {
+    flex: 1,
+  },
+  map: {
+    flex: 1,
+  },
+  sliderContainer: {
+    position: "absolute",
+    bottom: 20, // Adjust this value to give some room at the bottom
+    left: 0,
+    right: 0,
+    paddingHorizontal: 20,
+  },
+  slider: {
+    width: "100%",
+  },
+  radiusText: {
+    marginBottom: 10,
+    fontSize: 16,
+  },
 });
 
 export default MapScreen;
