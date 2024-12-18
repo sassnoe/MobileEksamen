@@ -12,6 +12,7 @@ import UserScreen from "./Components/UserScreen";
 import { FavoritesProvider } from "./Components/FavoritesContext";
 
 // MapScreen, should select correct file based on platform
+// import MapScreen from "./Components/MapScreen";
 import MapScreen from "./Components/MapScreen.js";
 
 const Stack = createStackNavigator();
