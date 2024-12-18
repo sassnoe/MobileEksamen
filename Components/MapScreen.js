@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View, Button } from "react-native";
+import { StyleSheet, Text, View, Pressable } from "react-native";
 import MapView, { Marker, Callout } from "react-native-maps";
 import { useState, useRef, useEffect } from "react";
 import * as Location from "expo-location";
@@ -20,7 +20,7 @@ const MapScreen = () => {
     longitudeDelta: 20,
   });
 
-  const [radius, setRadius] = useState(50000); // Default radius 50km
+  const [radius, setRadius] = useState(50000);
   const mapView = useRef(null);
   const locationSubscription = useRef(null);
 
@@ -134,13 +134,6 @@ const MapScreen = () => {
 
   return (
     <View style={styles.container}>
-      {/* Debug button */}
-      <Button
-        title="Debug Markers"
-        onPress={() => console.log("Current markers:", markers)}
-        style={styles.debugButton}
-      />
-
       <MapView
         ref={mapView}
         style={styles.map}
@@ -155,12 +148,23 @@ const MapScreen = () => {
             onPress={() => handleMarkerPress(marker)}
           >
             <Callout>
-              <Text>{marker.title}</Text>
-              <Text>{marker.description}</Text>
-              <Button
-                title="Add to Favorites"
-                onPress={() => addToFavorites(marker)}
-              />
+              <View style={styles.calloutContainer}>
+                <Text style={styles.calloutTitle}>{marker.title}</Text>
+                <Text style={styles.calloutDescription}>
+                  {marker.description}
+                </Text>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.favoriteButton,
+                    pressed && styles.favoriteButtonPressed,
+                  ]}
+                  onPress={() => addToFavorites(marker)}
+                >
+                  <Text style={styles.favoriteButtonText}>
+                    Add to Favorites
+                  </Text>
+                </Pressable>
+              </View>
             </Callout>
           </Marker>
         ))}
@@ -191,13 +195,6 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
   },
-  debugButton: {
-    position: "absolute",
-    top: 40,
-    zIndex: 1,
-    backgroundColor: "white",
-    padding: 10,
-  },
   sliderContainer: {
     position: "absolute",
     bottom: 20,
@@ -215,20 +212,37 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   calloutContainer: {
-    backgroundColor: "white",
-    padding: 10,
-    borderRadius: 6,
+    padding: 12,
     minWidth: 150,
     maxWidth: 250,
+    backgroundColor: "white",
   },
   calloutTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 5,
+    marginBottom: 6,
+    color: "#333",
   },
   calloutDescription: {
-    marginBottom: 10,
     fontSize: 14,
+    marginBottom: 10,
+    color: "#666",
+  },
+  favoriteButton: {
+    backgroundColor: "#4CAF50",
+    padding: 8,
+    borderRadius: 6,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  favoriteButtonPressed: {
+    backgroundColor: "#45a049",
+    opacity: 0.9,
+  },
+  favoriteButtonText: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "600",
   },
 });
 
