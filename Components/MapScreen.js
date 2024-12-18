@@ -12,6 +12,7 @@ import { database, auth } from "../firebase.js";
 import { ref, set } from "firebase/database";
 
 const MapScreen = () => {
+  // ... previous state and ref declarations ...
   const [markers, setMarkers] = useState([]);
   const [region, setRegion] = useState({
     latitude: 55,
@@ -24,6 +25,7 @@ const MapScreen = () => {
   const mapView = useRef(null);
   const locationSubscription = useRef(null);
 
+  // ... previous useEffect and fetchParks functions ...
   useEffect(() => {
     async function startListening() {
       let { status } = await Location.requestForegroundPermissionsAsync();
@@ -75,29 +77,30 @@ const MapScreen = () => {
     try {
       const response = await axios.get(url);
       const parks = response.data.results;
-      console.log("Fetched parks data:", parks);
+      const newMarkers = parks.map((park) => ({
+        coordinate: {
+          latitude: park.geometry.location.lat,
+          longitude: park.geometry.location.lng,
+        },
+        key: park.place_id,
+        title: park.name,
+        description: park.vicinity,
+      }));
 
-      const newMarkers = parks.map((park) => {
-        console.log("Processing park:", park.name);
-        return {
-          coordinate: {
-            latitude: park.geometry.location.lat,
-            longitude: park.geometry.location.lng,
-          },
-          key: park.place_id,
-          title: park.name,
-          description: park.vicinity,
-        };
-      });
-
-      console.log("New markers created:", newMarkers);
       setMarkers(newMarkers);
     } catch (error) {
       console.error("Error fetching parks: ", error);
     }
   };
 
-  const addToFavorites = (marker) => {
+  const addToFavorites = (marker, e) => {
+    // Prevent the event from bubbling up to the map
+    if (e) {
+      e.stopPropagation();
+    }
+
+    console.log("Adding to favorites:", marker.title); // Debug log
+
     const user = auth.currentUser;
 
     if (!user) {
@@ -124,12 +127,14 @@ const MapScreen = () => {
   };
 
   const handleMarkerPress = (marker) => {
-    console.log("Marker pressed:", {
-      title: marker.title,
-      description: marker.description,
-      coordinate: marker.coordinate,
-      key: marker.key,
-    });
+    console.log("Marker pressed:", marker.title);
+  };
+
+  const handleCalloutPress = (e) => {
+    // Prevent default map behavior
+    if (e) {
+      e.stopPropagation();
+    }
   };
 
   return (
@@ -147,23 +152,28 @@ const MapScreen = () => {
             title={marker.title}
             onPress={() => handleMarkerPress(marker)}
           >
-            <Callout>
+            <Callout onPress={handleCalloutPress} tooltip={false}>
               <View style={styles.calloutContainer}>
                 <Text style={styles.calloutTitle}>{marker.title}</Text>
                 <Text style={styles.calloutDescription}>
                   {marker.description}
                 </Text>
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.favoriteButton,
-                    pressed && styles.favoriteButtonPressed,
-                  ]}
-                  onPress={() => addToFavorites(marker)}
-                >
-                  <Text style={styles.favoriteButtonText}>
-                    Add to Favorites
-                  </Text>
-                </Pressable>
+                <View style={styles.buttonContainer}>
+                  <Pressable
+                    style={({ pressed }) => [
+                      styles.favoriteButton,
+                      pressed && styles.favoriteButtonPressed,
+                    ]}
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      addToFavorites(marker, e);
+                    }}
+                  >
+                    <Text style={styles.favoriteButtonText}>
+                      Add to Favorites
+                    </Text>
+                  </Pressable>
+                </View>
               </View>
             </Callout>
           </Marker>
@@ -213,8 +223,7 @@ const styles = StyleSheet.create({
   },
   calloutContainer: {
     padding: 12,
-    minWidth: 150,
-    maxWidth: 250,
+    minWidth: 200,
     backgroundColor: "white",
   },
   calloutTitle: {
@@ -228,9 +237,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     color: "#666",
   },
+  buttonContainer: {
+    marginTop: 5,
+  },
   favoriteButton: {
     backgroundColor: "#4CAF50",
-    padding: 8,
+    padding: 10,
     borderRadius: 6,
     alignItems: "center",
     justifyContent: "center",
