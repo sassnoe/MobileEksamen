@@ -8,8 +8,8 @@ import Slider from "@react-native-community/slider";
 import { API_KEY } from "../config.js";
 
 // Firebase
-import { database, auth } from "../firebase.js";
-import { ref, set } from "firebase/database";
+import { collection, doc, setDoc } from "firebase/firestore"; // Firestore functions
+import { firestore, auth } from "../firebase.js";
 
 const MapScreen = () => {
   const [markers, setMarkers] = useState([]);
@@ -92,7 +92,7 @@ const MapScreen = () => {
     }
   };
 
-  const addToFavorites = () => {
+  const addToFavorites = async () => {
     if (!selectedMarker) {
       alert("Please select a park first");
       return;
@@ -106,25 +106,26 @@ const MapScreen = () => {
     }
 
     const userId = user.uid;
-    const favoriteRef = ref(
-      database,
-      `favorites/${userId}/${selectedMarker.key}`
-    );
+    const favoriteRef = doc(
+      collection(firestore, "favorites"),
+      userId,
+      selectedMarker.key
+    ); // Create a reference to the favorite
 
-    set(favoriteRef, {
-      latitude: selectedMarker.coordinate.latitude,
-      longitude: selectedMarker.coordinate.longitude,
-      title: selectedMarker.title,
-      description: selectedMarker.description,
-    })
-      .then(() => {
-        alert(`${selectedMarker.title} has been added to your favorites!`);
-        setSelectedMarker(null); // Reset selection after adding
-      })
-      .catch((error) => {
-        alert("Error saving to favorites: " + error.message);
-        console.error("Error adding favorite marker:", error);
+    try {
+      await setDoc(favoriteRef, {
+        latitude: selectedMarker.coordinate.latitude,
+        longitude: selectedMarker.coordinate.longitude,
+        title: selectedMarker.title,
+        description: selectedMarker.description,
       });
+
+      alert(`${selectedMarker.title} has been added to your favorites!`);
+      setSelectedMarker(null); // Reset selection after adding
+    } catch (error) {
+      alert("Error saving to favorites: " + error.message);
+      console.error("Error adding favorite marker:", error);
+    }
   };
 
   const handleMarkerPress = (marker) => {
