@@ -100,7 +100,6 @@ const MapScreen = () => {
         title: park.name,
         description: park.vicinity,
       }));
-      console.log("Markers created:", newMarkers);
       setMarkers(newMarkers);
     } catch (error) {
       console.error("Error fetching parks: ", error);
