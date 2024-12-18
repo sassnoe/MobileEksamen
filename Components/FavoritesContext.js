@@ -1,6 +1,6 @@
 import React, { createContext, useState } from "react";
 import { collection, addDoc, getDocs } from "firebase/firestore";
-import { db } from "./firebase";
+import { db } from "../firebase.js";
 
 export const FavoritesContext = createContext();
 
