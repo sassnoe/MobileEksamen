@@ -12,8 +12,8 @@ import { database, auth } from "../firebase.js";
 import { ref, set } from "firebase/database";
 
 const MapScreen = () => {
-  // ... previous state and ref declarations ...
   const [markers, setMarkers] = useState([]);
+  const [selectedMarker, setSelectedMarker] = useState(null);
   const [region, setRegion] = useState({
     latitude: 55,
     longitude: 12,
@@ -25,7 +25,6 @@ const MapScreen = () => {
   const mapView = useRef(null);
   const locationSubscription = useRef(null);
 
-  // ... previous useEffect and fetchParks functions ...
   useEffect(() => {
     async function startListening() {
       let { status } = await Location.requestForegroundPermissionsAsync();
@@ -93,13 +92,11 @@ const MapScreen = () => {
     }
   };
 
-  const addToFavorites = (marker, e) => {
-    // Prevent the event from bubbling up to the map
-    if (e) {
-      e.stopPropagation();
+  const addToFavorites = () => {
+    if (!selectedMarker) {
+      alert("Please select a park first");
+      return;
     }
-
-    console.log("Adding to favorites:", marker.title); // Debug log
 
     const user = auth.currentUser;
 
@@ -109,16 +106,20 @@ const MapScreen = () => {
     }
 
     const userId = user.uid;
-    const favoriteRef = ref(database, `favorites/${userId}/${marker.key}`);
+    const favoriteRef = ref(
+      database,
+      `favorites/${userId}/${selectedMarker.key}`
+    );
 
     set(favoriteRef, {
-      latitude: marker.coordinate.latitude,
-      longitude: marker.coordinate.longitude,
-      title: marker.title,
-      description: marker.description,
+      latitude: selectedMarker.coordinate.latitude,
+      longitude: selectedMarker.coordinate.longitude,
+      title: selectedMarker.title,
+      description: selectedMarker.description,
     })
       .then(() => {
-        alert(`${marker.title} has been added to your favorites!`);
+        alert(`${selectedMarker.title} has been added to your favorites!`);
+        setSelectedMarker(null); // Reset selection after adding
       })
       .catch((error) => {
         alert("Error saving to favorites: " + error.message);
@@ -127,14 +128,8 @@ const MapScreen = () => {
   };
 
   const handleMarkerPress = (marker) => {
-    console.log("Marker pressed:", marker.title);
-  };
-
-  const handleCalloutPress = (e) => {
-    // Prevent default map behavior
-    if (e) {
-      e.stopPropagation();
-    }
+    setSelectedMarker(marker);
+    console.log("Selected marker:", marker.title);
   };
 
   return (
@@ -152,33 +147,34 @@ const MapScreen = () => {
             title={marker.title}
             onPress={() => handleMarkerPress(marker)}
           >
-            <Callout onPress={handleCalloutPress} tooltip={false}>
+            <Callout>
               <View style={styles.calloutContainer}>
                 <Text style={styles.calloutTitle}>{marker.title}</Text>
                 <Text style={styles.calloutDescription}>
                   {marker.description}
                 </Text>
-                <View style={styles.buttonContainer}>
-                  <Pressable
-                    style={({ pressed }) => [
-                      styles.favoriteButton,
-                      pressed && styles.favoriteButtonPressed,
-                    ]}
-                    onPress={(e) => {
-                      e.stopPropagation();
-                      addToFavorites(marker, e);
-                    }}
-                  >
-                    <Text style={styles.favoriteButtonText}>
-                      Add to Favorites
-                    </Text>
-                  </Pressable>
-                </View>
               </View>
             </Callout>
           </Marker>
         ))}
       </MapView>
+
+      {selectedMarker && (
+        <View style={styles.selectedParkContainer}>
+          <Text style={styles.selectedParkText}>
+            Selected: {selectedMarker.title}
+          </Text>
+          <Pressable
+            style={({ pressed }) => [
+              styles.favoriteButton,
+              pressed && styles.favoriteButtonPressed,
+            ]}
+            onPress={addToFavorites}
+          >
+            <Text style={styles.favoriteButtonText}>Add to Favorites</Text>
+          </Pressable>
+        </View>
+      )}
 
       <View style={styles.sliderContainer}>
         <Text style={styles.radiusText}>
@@ -204,6 +200,47 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
+  },
+  selectedParkContainer: {
+    position: "absolute",
+    bottom: 100, // Position above the slider
+    left: 20,
+    right: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    padding: 15,
+    borderRadius: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  selectedParkText: {
+    flex: 1,
+    fontSize: 16,
+    marginRight: 10,
+  },
+  favoriteButton: {
+    backgroundColor: "#4CAF50",
+    padding: 10,
+    borderRadius: 6,
+    minWidth: 130,
+    alignItems: "center",
+  },
+  favoriteButtonPressed: {
+    backgroundColor: "#45a049",
+    opacity: 0.9,
+  },
+  favoriteButtonText: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "600",
   },
   sliderContainer: {
     position: "absolute",
@@ -234,27 +271,7 @@ const styles = StyleSheet.create({
   },
   calloutDescription: {
     fontSize: 14,
-    marginBottom: 10,
     color: "#666",
-  },
-  buttonContainer: {
-    marginTop: 5,
-  },
-  favoriteButton: {
-    backgroundColor: "#4CAF50",
-    padding: 10,
-    borderRadius: 6,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  favoriteButtonPressed: {
-    backgroundColor: "#45a049",
-    opacity: 0.9,
-  },
-  favoriteButtonText: {
-    color: "white",
-    fontSize: 14,
-    fontWeight: "600",
   },
 });
 
