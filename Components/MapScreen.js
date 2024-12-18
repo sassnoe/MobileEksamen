@@ -1,15 +1,14 @@
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, Button } from "react-native";
 import MapView, { Marker, Callout } from "react-native-maps";
 import { useState, useRef, useEffect } from "react";
 import * as Location from "expo-location";
 import axios from "axios";
 import Slider from "@react-native-community/slider";
 import { API_KEY } from "../config.js";
-import { Button } from "react-native-web";
 
-//firebase
-import { database } from "../firebase.js";
+// Firebase
+import { database, auth } from "../firebase.js";
 import { ref, set } from "firebase/database";
 
 const MapScreen = () => {
@@ -22,18 +21,17 @@ const MapScreen = () => {
   });
 
   const [radius, setRadius] = useState(50000); // Default radius 50km
-
   const mapView = useRef(null);
-  const locationSubscribtion = useRef(null);
+  const locationSubscription = useRef(null);
 
   useEffect(() => {
     async function startListening() {
       let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status != "granted") {
+      if (status !== "granted") {
         alert("No access to location");
         return;
       }
-      locationSubscribtion.current = await Location.watchPositionAsync(
+      locationSubscription.current = await Location.watchPositionAsync(
         {
           distanceInterval: 100,
           accuracy: Location.Accuracy.High,
@@ -49,32 +47,19 @@ const MapScreen = () => {
           if (mapView.current) {
             mapView.current.animateToRegion(newRegion);
           }
-          console.log("Fetching parks for location:", location.coords.latitude, location.coords.longitude);
-          fetchParks(location.coords.latitude, location.coords.longitude, radius);
+          fetchParks(
+            location.coords.latitude,
+            location.coords.longitude,
+            radius
+          );
         }
       );
     }
 
-    const addToFavorites = (marker) => {
-      const userId = "currentUserId"; // Replace with method of getting the current user's ID
-      set(ref(database, `favorites/${userId}/${marker.key}`), {
-        latitude: marker.coordinate.latitude,
-        longitude: marker.coordinate.longitude,
-        title: marker.title,
-        description: marker.description,
-      })
-        .then(() => {
-          console.log("Marker added to favorites");
-        })
-        .catch((error) => {
-          console.error("Error adding favorite marker:", error);
-        });
-    };
-
     startListening();
     return () => {
-      if (locationSubscribtion.current) {
-        locationSubscribtion.current.remove();
+      if (locationSubscription.current) {
+        locationSubscription.current.remove();
       }
     };
   }, [radius]);
@@ -90,37 +75,109 @@ const MapScreen = () => {
     try {
       const response = await axios.get(url);
       const parks = response.data.results;
-      console.log("Parks fetched:", parks);
-      const newMarkers = parks.map((park) => ({
-        coordinate: {
-          latitude: park.geometry.location.lat,
-          longitude: park.geometry.location.lng,
-        },
-        key: park.place_id,
-        title: park.name,
-        description: park.vicinity,
-      }));
+      console.log("Fetched parks data:", parks);
+
+      const newMarkers = parks.map((park) => {
+        console.log("Processing park:", park.name);
+        return {
+          coordinate: {
+            latitude: park.geometry.location.lat,
+            longitude: park.geometry.location.lng,
+          },
+          key: park.place_id,
+          title: park.name,
+          description: park.vicinity,
+        };
+      });
+
+      console.log("New markers created:", newMarkers);
       setMarkers(newMarkers);
     } catch (error) {
       console.error("Error fetching parks: ", error);
     }
   };
 
+  const addToFavorites = (marker) => {
+    const user = auth.currentUser;
+
+    if (!user) {
+      alert("You need to be logged in to save favorites.");
+      return;
+    }
+
+    const userId = user.uid;
+    const favoriteRef = ref(database, `favorites/${userId}/${marker.key}`);
+
+    set(favoriteRef, {
+      latitude: marker.coordinate.latitude,
+      longitude: marker.coordinate.longitude,
+      title: marker.title,
+      description: marker.description,
+    })
+      .then(() => {
+        alert(`${marker.title} has been added to your favorites!`);
+      })
+      .catch((error) => {
+        alert("Error saving to favorites: " + error.message);
+        console.error("Error adding favorite marker:", error);
+      });
+  };
+
+  const handleMarkerPress = (marker) => {
+    console.log("Marker pressed:", {
+      title: marker.title,
+      description: marker.description,
+      coordinate: marker.coordinate,
+      key: marker.key,
+    });
+  };
+
   return (
     <View style={styles.container}>
-      <MapView ref={mapView} style={styles.map} region={region} onRegionChangeComplete={setRegion}>
+      {/* Debug button */}
+      <Button
+        title="Debug Markers"
+        onPress={() => console.log("Current markers:", markers)}
+        style={styles.debugButton}
+      />
+
+      <MapView
+        ref={mapView}
+        style={styles.map}
+        region={region}
+        onRegionChangeComplete={setRegion}
+      >
         {markers.map((marker) => (
-          <Marker key={marker.key} coordinate={marker.coordinate} title={marker.title} description={marker.description} onCalloutPress={() => addToFavorites(marker)}>
+          <Marker
+            key={marker.key}
+            coordinate={marker.coordinate}
+            title={marker.title}
+            onPress={() => handleMarkerPress(marker)}
+          >
             <Callout>
               <Text>{marker.title}</Text>
               <Text>{marker.description}</Text>
+              <Button
+                title="Add to Favorites"
+                onPress={() => addToFavorites(marker)}
+              />
             </Callout>
           </Marker>
         ))}
       </MapView>
+
       <View style={styles.sliderContainer}>
-        <Text style={styles.radiusText}>View distance: {(radius / 1000).toFixed(1)} km</Text>
-        <Slider style={styles.slider} minimumValue={10000} maximumValue={100000} step={5000} value={radius} onValueChange={(value) => setRadius(value)} />
+        <Text style={styles.radiusText}>
+          View distance: {(radius / 1000).toFixed(1)} km
+        </Text>
+        <Slider
+          style={styles.slider}
+          minimumValue={10000}
+          maximumValue={100000}
+          step={5000}
+          value={radius}
+          onValueChange={(value) => setRadius(value)}
+        />
       </View>
       <StatusBar style="auto" />
     </View>
@@ -134,12 +191,20 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
   },
+  debugButton: {
+    position: "absolute",
+    top: 40,
+    zIndex: 1,
+    backgroundColor: "white",
+    padding: 10,
+  },
   sliderContainer: {
     position: "absolute",
-    bottom: 20, // Adjust this value to give some room at the bottom
+    bottom: 20,
     left: 0,
     right: 0,
     paddingHorizontal: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
   },
   slider: {
     width: "100%",
@@ -147,6 +212,23 @@ const styles = StyleSheet.create({
   radiusText: {
     marginBottom: 10,
     fontSize: 16,
+    textAlign: "center",
+  },
+  calloutContainer: {
+    backgroundColor: "white",
+    padding: 10,
+    borderRadius: 6,
+    minWidth: 150,
+    maxWidth: 250,
+  },
+  calloutTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
+  calloutDescription: {
+    marginBottom: 10,
+    fontSize: 14,
   },
 });
 
