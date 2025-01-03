@@ -116,14 +116,14 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     zIndex: 1,
     padding: 0,
-    borderRadius: 0, // Remove border radius to make the button square
+    borderRadius: 0,
   },
   menuButton: {
     width: 150,
     justifyContent: "center",
     alignItems: "center",
     padding: 10,
-    borderRadius: 0, // Remove border radius to make the button square
+    borderRadius: 0,
   },
   arrowIcon: {
     marginLeft: 5,
