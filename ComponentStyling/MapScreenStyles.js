@@ -113,17 +113,20 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 10,
     left: 10,
-    right: 10,
-    zIndex: 10,
+    backgroundColor: "white",
+    zIndex: 1,
+    padding: 0,
+    borderRadius: 0, // Remove border radius to make the button square
   },
   menuButton: {
-    backgroundColor: "white",
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    borderRadius: 8,
+    width: 150,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10,
+    borderRadius: 0, // Remove border radius to make the button square
   },
   arrowIcon: {
-    marginLeft: 8,
+    marginLeft: 5,
   },
 });
 
