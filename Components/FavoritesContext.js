@@ -1,6 +1,6 @@
 import React, { createContext, useState } from "react";
 import { collection, addDoc, getDocs } from "firebase/firestore";
-import { db } from "../firebase.js";
+import { database } from "../firebase.js";
 
 export const FavoritesContext = createContext();
 
@@ -11,7 +11,7 @@ export const FavoritesProvider = ({ children }) => {
   const addToFavorites = async (location) => {
     try {
       // Save to Firestore
-      const docRef = await addDoc(collection(db, "favorites"), location);
+      const docRef = await addDoc(collection(database, "favorites"), location);
       console.log("Document written with ID: ", docRef.id);
 
       // Update local state
@@ -24,7 +24,7 @@ export const FavoritesProvider = ({ children }) => {
   // Load favorites from Firestore
   const loadFavorites = async () => {
     try {
-      const querySnapshot = await getDocs(collection(db, "favorites"));
+      const querySnapshot = await getDocs(collection(database, "favorites"));
       const loadedFavorites = querySnapshot.docs.map((doc) => ({
         ...doc.data(),
         id: doc.id,

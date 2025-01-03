@@ -5,7 +5,6 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 
 import LoginScreen from "./LoginScreen";
-import HomeScreen from "./HomeScreen";
 import SignUpScreen from "./SignUpScreen";
 import ReviewScreen from "./Components/ReviewScreen";
 import UserScreen from "./Components/UserScreen";
@@ -52,11 +51,7 @@ export default function App() {
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Login">
           <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen
-            name="Home"
-            component={MainTabs}
-            options={{ headerShown: false }}
-          />
+          <Stack.Screen name="Home" component={MainTabs} options={{ headerShown: false }} />
           <Stack.Screen name="SignUp" component={SignUpScreen} />
         </Stack.Navigator>
       </NavigationContainer>
