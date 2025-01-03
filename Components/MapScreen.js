@@ -1,6 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View, Pressable } from "react-native";
-import MapView, { Marker, Callout } from "react-native-maps";
+import MapView, { Marker, Callout, Circle } from "react-native-maps";
 import { useState, useRef, useEffect } from "react";
 import * as Location from "expo-location";
 import axios from "axios";
@@ -20,9 +20,9 @@ const MapScreen = () => {
     latitudeDelta: 20,
     longitudeDelta: 20,
   });
-
+  const [currentLocation, setCurrentLocation] = useState(null);
   const [radius, setRadius] = useState(50000);
-  const [isScanning, setIsScanning] = useState(false); // New state for scanning toggle
+  const [isScanning, setIsScanning] = useState(false);
   const mapView = useRef(null);
   const locationSubscription = useRef(null);
   const scanIntervalRef = useRef(null);
@@ -47,6 +47,10 @@ const MapScreen = () => {
             longitudeDelta: 0.0421,
           };
           setRegion(newRegion);
+          setCurrentLocation({
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+          });
           if (mapView.current) {
             mapView.current.animateToRegion(newRegion);
           }
@@ -65,7 +69,7 @@ const MapScreen = () => {
         locationSubscription.current.remove();
       }
       if (scanIntervalRef.current) {
-        clearInterval(scanIntervalRef.current); // Clear scan interval on unmount
+        clearInterval(scanIntervalRef.current);
       }
     };
   }, [radius]);
@@ -80,10 +84,7 @@ const MapScreen = () => {
 
     try {
       const response = await axios.get(url);
-      console.log("Fetched parks response:", response.data.results);
-
       const parks = response.data.results;
-      console.log("Parks:", parks);
 
       const newMarkers = parks.map((park) => ({
         coordinate: {
@@ -105,25 +106,22 @@ const MapScreen = () => {
 
   const toggleScanning = () => {
     if (isScanning) {
-      // Stop scanning
       clearInterval(scanIntervalRef.current);
       scanIntervalRef.current = null;
       setIsScanning(false);
       alert("Scanning stopped.");
     } else {
-      // Start scanning
       scanIntervalRef.current = setInterval(() => {
         if (region.latitude && region.longitude) {
           fetchParks(region.latitude, region.longitude, radius);
         }
-      }, 300000); // 5 minutes
+      }, 300000);
       setIsScanning(true);
       alert("Scanning started.");
     }
   };
-  const addToFavorites = async () => {
-    console.log("Adding to favorites:", selectedMarker);
 
+  const addToFavorites = async () => {
     if (!selectedMarker) {
       alert("Please select a park first");
       return;
@@ -143,7 +141,7 @@ const MapScreen = () => {
       userId,
       "favorites",
       selectedMarker.key.toString()
-    ); // Create a reference to the favorite
+    );
 
     try {
       await setDoc(favoriteRef, {
@@ -154,15 +152,15 @@ const MapScreen = () => {
       });
 
       alert(`${selectedMarker.title} has been added to your favorites!`);
-      setSelectedMarker(null); // Reset selection after adding
+      setSelectedMarker(null);
     } catch (error) {
       alert("Error saving to favorites: " + error.message);
       console.error("Error adding favorite marker:", error);
     }
   };
+
   const handleMarkerPress = (marker) => {
     setSelectedMarker(marker);
-    console.log("Selected marker:", marker.title);
   };
 
   return (
@@ -173,6 +171,13 @@ const MapScreen = () => {
         region={region}
         onRegionChangeComplete={setRegion}
       >
+        {currentLocation && (
+          <Marker
+            coordinate={currentLocation}
+            title="Your Location"
+            pinColor="blue"
+          />
+        )}
         {markers.map((marker) => (
           <Marker
             key={marker.key}
