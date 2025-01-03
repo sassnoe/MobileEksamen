@@ -9,7 +9,7 @@ import { API_KEY } from "../config.js";
 import { Picker } from "@react-native-picker/picker";
 
 // Firebase
-import { collection, doc, setDoc } from "firebase/firestore"; // Firestore functions
+import { collection, doc, setDoc } from "firebase/firestore";
 import { firestore, auth } from "../firebase.js";
 
 const MapScreen = () => {
@@ -24,8 +24,10 @@ const MapScreen = () => {
   });
 
   const [radius, setRadius] = useState(10000);
+  const [isScanning, setIsScanning] = useState(false); // New state for scanning toggle
   const mapView = useRef(null);
   const locationSubscription = useRef(null);
+  const scanIntervalRef = useRef(null);
 
   useEffect(() => {
     async function startListening() {
@@ -65,6 +67,9 @@ const MapScreen = () => {
       if (locationSubscription.current) {
         locationSubscription.current.remove();
       }
+      if (scanIntervalRef.current) {
+        clearInterval(scanIntervalRef.current); // Clear scan interval on unmount
+      }
     };
   }, [radius, selectedCategory]);
 
@@ -81,6 +86,8 @@ const MapScreen = () => {
           key: place.place_id,
           title: place.name,
           description: place.vicinity,
+          rating: park.rating,
+          totalRatings: park.user_ratings_total,
         }));
         setMarkers(newMarkers);
       } catch (error) {
@@ -88,7 +95,24 @@ const MapScreen = () => {
       }
     };
 
-
+  const toggleScanning = () => {
+    if (isScanning) {
+      // Stop scanning
+      clearInterval(scanIntervalRef.current);
+      scanIntervalRef.current = null;
+      setIsScanning(false);
+      alert("Scanning stopped.");
+    } else {
+      // Start scanning
+      scanIntervalRef.current = setInterval(() => {
+        if (region.latitude && region.longitude) {
+          fetchParks(region.latitude, region.longitude, radius);
+        }
+      }, 300000); // 5 minutes
+      setIsScanning(true);
+      alert("Scanning started. Parks will refresh every 5 minutes.");
+    }
+  };
   const addToFavorites = async () => {
     console.log("Adding to favorites:", selectedMarker);
 
@@ -128,7 +152,6 @@ const MapScreen = () => {
       console.error("Error adding favorite marker:", error);
     }
   };
-
   const handleMarkerPress = (marker) => {
     setSelectedMarker(marker);
     console.log("Selected marker:", marker.title);
@@ -165,8 +188,9 @@ const MapScreen = () => {
             <Callout>
               <View style={styles.calloutContainer}>
                 <Text style={styles.calloutTitle}>{marker.title}</Text>
-                <Text style={styles.calloutDescription}>
-                  {marker.description}
+                <Text style={styles.calloutDescription}>{marker.description}</Text>
+                <Text>
+                  {marker.rating} stars ({marker.totalRatings})
                 </Text>
               </View>
             </Callout>
@@ -204,6 +228,11 @@ const MapScreen = () => {
           onValueChange={(value) => setRadius(value)}
         />
       </View>
+
+      <Pressable style={styles.scanButton} onPress={toggleScanning}>
+        <Text style={styles.scanButtonText}>{isScanning ? "Stop Scanning" : "Start Scanning"}</Text>
+      </Pressable>
+
       <StatusBar style="auto" />
     </View>
   );
@@ -220,7 +249,7 @@ const styles = StyleSheet.create({
   },
   selectedParkContainer: {
     position: "absolute",
-    bottom: 100, // Position above the slider
+    bottom: 100,
     left: 20,
     right: 20,
     backgroundColor: "rgba(255, 255, 255, 0.9)",
@@ -278,6 +307,23 @@ const styles = StyleSheet.create({
   calloutDescription: {
     fontSize: 14,
     color: "#666",
+  },
+  scanButton: {
+    position: "absolute",
+    top: 20,
+    right: 20,
+    backgroundColor: "#2196F3",
+    padding: 10,
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  scanButtonText: {
+    color: "white",
+    fontWeight: "bold",
   },
   pickerContainer: {
     position: "absolute",
