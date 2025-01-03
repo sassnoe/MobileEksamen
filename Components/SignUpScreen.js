@@ -4,10 +4,10 @@ import { View, Text, TextInput, Button, Alert } from "react-native";
 
 // Firebase
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "./firebase";
+import { auth } from "../firebase";
 
 // Styles
-import styles from "./SignUpScreenStyles";
+import styles from "../ComponentStyling/SignUpScreenStyles";
 
 const SignUpScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");

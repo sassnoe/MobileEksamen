@@ -6,8 +6,8 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 
 // Components
-import LoginScreen from "./LoginScreen";
-import SignUpScreen from "./SignUpScreen";
+import LoginScreen from "./Components/LoginScreen.js";
+import SignUpScreen from "./Components/SignUpScreen.js";
 import FavoritesScreen from "./Components/FavoritesScreen.js";
 import { FavoritesProvider } from "./Components/FavoritesContext";
 

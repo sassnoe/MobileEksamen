@@ -1,9 +1,13 @@
+// React
 import React, { useState } from "react";
 import { View, Text, TextInput, Button, Alert, Image } from "react-native";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "./firebase";
 
-import styles from "./LoginScreenStyles";
+// Firebase
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebase";
+
+// Styles
+import styles from "../ComponentStyling/LoginScreenStyles";
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
@@ -22,7 +26,7 @@ const LoginScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>POIFinder</Text>
-      <Image source={require("./assets/POI.jpg")} style={styles.image} />
+      <Image source={require("../assets/POI.jpg")} style={styles.image} />
       <TextInput placeholder="Email" value={email} onChangeText={setEmail} style={styles.input} />
       <TextInput placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry style={styles.passwordInput} />
       <Button title="Login" onPress={handleLogin} />
