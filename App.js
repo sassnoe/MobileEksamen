@@ -25,10 +25,8 @@ function MainTabs() {
 
           if (route.name === "Map") {
             iconName = focused ? "map" : "map-outline";
-          } else if (route.name === "Reviews") {
+          } else if (route.name === "Favorites") {
             iconName = focused ? "star" : "star-outline";
-          } else if (route.name === "User") {
-            iconName = focused ? "person" : "person-outline";
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
