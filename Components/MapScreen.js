@@ -50,11 +50,7 @@ const MapScreen = () => {
           if (mapView.current) {
             mapView.current.animateToRegion(newRegion);
           }
-          fetchParks(
-            location.coords.latitude,
-            location.coords.longitude,
-            radius
-          );
+          fetchParks(location.coords.latitude, location.coords.longitude, radius);
         }
       );
     }
@@ -80,7 +76,11 @@ const MapScreen = () => {
 
     try {
       const response = await axios.get(url);
+      console.log("Fetched parks response:", response.data.results);
+
       const parks = response.data.results;
+      console.log("Parks:", parks);
+
       const newMarkers = parks.map((park) => ({
         coordinate: {
           latitude: park.geometry.location.lat,
@@ -89,6 +89,8 @@ const MapScreen = () => {
         key: park.place_id,
         title: park.name,
         description: park.vicinity,
+        rating: park.rating,
+        totalRatings: park.user_ratings_total,
       }));
 
       setMarkers(newMarkers);
@@ -131,13 +133,7 @@ const MapScreen = () => {
     }
 
     const userId = user.uid;
-    const favoriteRef = doc(
-      firestore,
-      "users",
-      userId,
-      "favorites",
-      selectedMarker.key.toString()
-    ); // Create a reference to the favorite
+    const favoriteRef = doc(firestore, "users", userId, "favorites", selectedMarker.key.toString()); // Create a reference to the favorite
 
     try {
       await setDoc(favoriteRef, {
@@ -161,24 +157,15 @@ const MapScreen = () => {
 
   return (
     <View style={styles.container}>
-      <MapView
-        ref={mapView}
-        style={styles.map}
-        region={region}
-        onRegionChangeComplete={setRegion}
-      >
+      <MapView ref={mapView} style={styles.map} region={region} onRegionChangeComplete={setRegion}>
         {markers.map((marker) => (
-          <Marker
-            key={marker.key}
-            coordinate={marker.coordinate}
-            title={marker.title}
-            onPress={() => handleMarkerPress(marker)}
-          >
+          <Marker key={marker.key} coordinate={marker.coordinate} title={marker.title} onPress={() => handleMarkerPress(marker)}>
             <Callout>
               <View style={styles.calloutContainer}>
                 <Text style={styles.calloutTitle}>{marker.title}</Text>
-                <Text style={styles.calloutDescription}>
-                  {marker.description}
+                <Text style={styles.calloutDescription}>{marker.description}</Text>
+                <Text>
+                  {marker.rating} stars ({marker.totalRatings})
                 </Text>
               </View>
             </Callout>
@@ -188,39 +175,20 @@ const MapScreen = () => {
 
       {selectedMarker && (
         <View style={styles.selectedParkContainer}>
-          <Text style={styles.selectedParkText}>
-            Selected: {selectedMarker.title}
-          </Text>
-          <Pressable
-            style={({ pressed }) => [
-              styles.favoriteButton,
-              pressed && styles.favoriteButtonPressed,
-            ]}
-            onPress={addToFavorites}
-          >
+          <Text style={styles.selectedParkText}>Selected: {selectedMarker.title}</Text>
+          <Pressable style={({ pressed }) => [styles.favoriteButton, pressed && styles.favoriteButtonPressed]} onPress={addToFavorites}>
             <Text style={styles.favoriteButtonText}>Add to Favorites</Text>
           </Pressable>
         </View>
       )}
 
       <View style={styles.sliderContainer}>
-        <Text style={styles.radiusText}>
-          View distance: {(radius / 1000).toFixed(1)} km
-        </Text>
-        <Slider
-          style={styles.slider}
-          minimumValue={10000}
-          maximumValue={100000}
-          step={5000}
-          value={radius}
-          onValueChange={(value) => setRadius(value)}
-        />
+        <Text style={styles.radiusText}>View distance: {(radius / 1000).toFixed(1)} km</Text>
+        <Slider style={styles.slider} minimumValue={10000} maximumValue={100000} step={5000} value={radius} onValueChange={(value) => setRadius(value)} />
       </View>
 
       <Pressable style={styles.scanButton} onPress={toggleScanning}>
-        <Text style={styles.scanButtonText}>
-          {isScanning ? "Stop Scanning" : "Start Scanning"}
-        </Text>
+        <Text style={styles.scanButtonText}>{isScanning ? "Stop Scanning" : "Start Scanning"}</Text>
       </Pressable>
 
       <StatusBar style="auto" />
