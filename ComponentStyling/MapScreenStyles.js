@@ -96,6 +96,35 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
   },
+  sliderContainer: {
+    position: "absolute",
+    bottom: 20,
+    left: 10,
+    right: 10,
+    paddingHorizontal: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    borderRadius: 8,
+    zIndex: 5,
+  },
+  slider: {
+    width: "100%",
+  },
+  menuContainer: {
+    position: "absolute",
+    top: 10,
+    left: 10,
+    right: 10,
+    zIndex: 10,
+  },
+  menuButton: {
+    backgroundColor: "white",
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+  },
+  arrowIcon: {
+    marginLeft: 8,
+  },
 });
 
 export default styles;
