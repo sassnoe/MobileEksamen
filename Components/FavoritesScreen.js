@@ -1,5 +1,12 @@
 import React, { useContext, useCallback } from "react";
-import { View, Text, FlatList, StyleSheet, Pressable } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  Pressable,
+  Linking,
+} from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { FavoritesContext } from "./FavoritesContext";
 
@@ -16,6 +23,14 @@ const FavoritesScreen = () => {
 
   const handleRemove = (id) => {
     removeFromFavorites(id);
+  };
+
+  // Function to open Google Maps and navigate to the favorite location
+  const handleNavigate = (latitude, longitude) => {
+    const url = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+    Linking.openURL(url).catch((err) =>
+      console.error("Error opening Google Maps: ", err)
+    );
   };
 
   return (
@@ -39,6 +54,15 @@ const FavoritesScreen = () => {
                 onPress={() => handleRemove(item.id)}
               >
                 <Text style={styles.removeButtonText}>Remove</Text>
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.navigateButton,
+                  pressed && styles.navigateButtonPressed,
+                ]}
+                onPress={() => handleNavigate(item.latitude, item.longitude)} // Navigate to location
+              >
+                <Text style={styles.navigateButtonText}>Navigate</Text>
               </Pressable>
             </View>
           )}
@@ -99,6 +123,23 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   removeButtonText: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  navigateButton: {
+    backgroundColor: "#4CAF50",
+    padding: 8,
+    borderRadius: 6,
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 10,
+  },
+  navigateButtonPressed: {
+    backgroundColor: "#388E3C",
+    opacity: 0.9,
+  },
+  navigateButtonText: {
     color: "white",
     fontSize: 14,
     fontWeight: "600",
