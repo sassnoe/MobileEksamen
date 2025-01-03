@@ -1,13 +1,12 @@
 import React, { createContext, useState, useEffect } from "react";
 import { collection, doc, addDoc, getDocs } from "firebase/firestore";
-import { firestore, auth } from "../firebase.js"; // Ensure you import auth for currentUser
+import { firestore, auth } from "../firebase.js";
 
 export const FavoritesContext = createContext();
 
 export const FavoritesProvider = ({ children }) => {
   const [favorites, setFavorites] = useState([]);
 
-  // Get the currently logged-in user's ID
   const getUserId = () => {
     const user = auth.currentUser;
     return user.uid;
@@ -59,7 +58,7 @@ export const FavoritesProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    loadFavorites(); // Automatically load favorites when the provider mounts
+    loadFavorites();
   }, []);
 
   return (
