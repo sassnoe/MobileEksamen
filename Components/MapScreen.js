@@ -12,7 +12,6 @@ import * as Location from "expo-location";
 import axios from "axios";
 
 import { API_KEY } from "../config.js";
-import { Picker } from "@react-native-picker/picker";
 import { Menu, Button, Provider } from "react-native-paper";
 import { FontAwesome } from "@expo/vector-icons";
 
@@ -177,7 +176,7 @@ const MapScreen = () => {
                   name="caret-down"
                   size={14}
                   color="#000"
-                  style={styles.arrowIcon} // Added style for better positioning
+                  style={styles.arrowIcon}
                 />
               </Button>
             }
