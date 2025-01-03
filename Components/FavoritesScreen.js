@@ -1,6 +1,6 @@
 // React
 import React, { useContext, useCallback } from "react";
-import { View, Text, FlatList, StyleSheet, Pressable, Linking } from "react-native";
+import { View, Text, FlatList, Pressable, Linking } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 
 import { FavoritesContext } from "./FavoritesContext";

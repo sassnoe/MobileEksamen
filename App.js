@@ -6,14 +6,11 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 
 // Components
+import MapScreen from "./Components/MapScreen.js";
 import LoginScreen from "./Components/LoginScreen.js";
 import SignUpScreen from "./Components/SignUpScreen.js";
 import FavoritesScreen from "./Components/FavoritesScreen.js";
 import { FavoritesProvider } from "./Components/FavoritesContext";
-
-// MapScreen, should select correct file based on platform
-// import MapScreen from "./Components/MapScreen";
-import MapScreen from "./Components/MapScreen.js";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();

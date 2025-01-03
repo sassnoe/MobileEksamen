@@ -1,6 +1,6 @@
 // React
 import { useState, useRef, useEffect } from "react";
-import { StyleSheet, Text, View, Pressable } from "react-native";
+import { Text, View, Pressable } from "react-native";
 import MapView, { Marker, Callout } from "react-native-maps";
 import Slider from "@react-native-community/slider";
 
@@ -172,12 +172,7 @@ const MapScreen = () => {
             anchor={
               <Button mode="outlined" onPress={openMenu} style={styles.menuButton}>
                 {selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)}
-                <FontAwesome
-                  name="caret-down"
-                  size={14}
-                  color="#000"
-                  style={styles.arrowIcon}
-                />
+                <FontAwesome name="caret-down" size={14} color="#000" style={styles.arrowIcon} />
               </Button>
             }
           >
