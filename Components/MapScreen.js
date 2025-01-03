@@ -8,7 +8,7 @@ import Slider from "@react-native-community/slider";
 import { API_KEY } from "../config.js";
 
 // Firebase
-import { collection, doc, setDoc } from "firebase/firestore"; // Firestore functions
+import { collection, doc, setDoc } from "firebase/firestore";
 import { firestore, auth } from "../firebase.js";
 
 const MapScreen = () => {
@@ -22,8 +22,10 @@ const MapScreen = () => {
   });
 
   const [radius, setRadius] = useState(50000);
+  const [isScanning, setIsScanning] = useState(false); // New state for scanning toggle
   const mapView = useRef(null);
   const locationSubscription = useRef(null);
+  const scanIntervalRef = useRef(null);
 
   useEffect(() => {
     async function startListening() {
@@ -48,7 +50,11 @@ const MapScreen = () => {
           if (mapView.current) {
             mapView.current.animateToRegion(newRegion);
           }
-          fetchParks(location.coords.latitude, location.coords.longitude, radius);
+          fetchParks(
+            location.coords.latitude,
+            location.coords.longitude,
+            radius
+          );
         }
       );
     }
@@ -57,6 +63,9 @@ const MapScreen = () => {
     return () => {
       if (locationSubscription.current) {
         locationSubscription.current.remove();
+      }
+      if (scanIntervalRef.current) {
+        clearInterval(scanIntervalRef.current); // Clear scan interval on unmount
       }
     };
   }, [radius]);
@@ -88,6 +97,24 @@ const MapScreen = () => {
     }
   };
 
+  const toggleScanning = () => {
+    if (isScanning) {
+      // Stop scanning
+      clearInterval(scanIntervalRef.current);
+      scanIntervalRef.current = null;
+      setIsScanning(false);
+      alert("Scanning stopped.");
+    } else {
+      // Start scanning
+      scanIntervalRef.current = setInterval(() => {
+        if (region.latitude && region.longitude) {
+          fetchParks(region.latitude, region.longitude, radius);
+        }
+      }, 300000); // 5 minutes
+      setIsScanning(true);
+      alert("Scanning started. Parks will refresh every 5 minutes.");
+    }
+  };
   const addToFavorites = async () => {
     console.log("Adding to favorites:", selectedMarker);
 
@@ -104,7 +131,13 @@ const MapScreen = () => {
     }
 
     const userId = user.uid;
-    const favoriteRef = doc(firestore, "users", userId, "favorites", selectedMarker.key.toString()); // Create a reference to the favorite
+    const favoriteRef = doc(
+      firestore,
+      "users",
+      userId,
+      "favorites",
+      selectedMarker.key.toString()
+    ); // Create a reference to the favorite
 
     try {
       await setDoc(favoriteRef, {
@@ -121,7 +154,6 @@ const MapScreen = () => {
       console.error("Error adding favorite marker:", error);
     }
   };
-
   const handleMarkerPress = (marker) => {
     setSelectedMarker(marker);
     console.log("Selected marker:", marker.title);
@@ -129,13 +161,25 @@ const MapScreen = () => {
 
   return (
     <View style={styles.container}>
-      <MapView ref={mapView} style={styles.map} region={region} onRegionChangeComplete={setRegion}>
+      <MapView
+        ref={mapView}
+        style={styles.map}
+        region={region}
+        onRegionChangeComplete={setRegion}
+      >
         {markers.map((marker) => (
-          <Marker key={marker.key} coordinate={marker.coordinate} title={marker.title} onPress={() => handleMarkerPress(marker)}>
+          <Marker
+            key={marker.key}
+            coordinate={marker.coordinate}
+            title={marker.title}
+            onPress={() => handleMarkerPress(marker)}
+          >
             <Callout>
               <View style={styles.calloutContainer}>
                 <Text style={styles.calloutTitle}>{marker.title}</Text>
-                <Text style={styles.calloutDescription}>{marker.description}</Text>
+                <Text style={styles.calloutDescription}>
+                  {marker.description}
+                </Text>
               </View>
             </Callout>
           </Marker>
@@ -144,17 +188,41 @@ const MapScreen = () => {
 
       {selectedMarker && (
         <View style={styles.selectedParkContainer}>
-          <Text style={styles.selectedParkText}>Selected: {selectedMarker.title}</Text>
-          <Pressable style={({ pressed }) => [styles.favoriteButton, pressed && styles.favoriteButtonPressed]} onPress={addToFavorites}>
+          <Text style={styles.selectedParkText}>
+            Selected: {selectedMarker.title}
+          </Text>
+          <Pressable
+            style={({ pressed }) => [
+              styles.favoriteButton,
+              pressed && styles.favoriteButtonPressed,
+            ]}
+            onPress={addToFavorites}
+          >
             <Text style={styles.favoriteButtonText}>Add to Favorites</Text>
           </Pressable>
         </View>
       )}
 
       <View style={styles.sliderContainer}>
-        <Text style={styles.radiusText}>View distance: {(radius / 1000).toFixed(1)} km</Text>
-        <Slider style={styles.slider} minimumValue={10000} maximumValue={100000} step={5000} value={radius} onValueChange={(value) => setRadius(value)} />
+        <Text style={styles.radiusText}>
+          View distance: {(radius / 1000).toFixed(1)} km
+        </Text>
+        <Slider
+          style={styles.slider}
+          minimumValue={10000}
+          maximumValue={100000}
+          step={5000}
+          value={radius}
+          onValueChange={(value) => setRadius(value)}
+        />
       </View>
+
+      <Pressable style={styles.scanButton} onPress={toggleScanning}>
+        <Text style={styles.scanButtonText}>
+          {isScanning ? "Stop Scanning" : "Start Scanning"}
+        </Text>
+      </Pressable>
+
       <StatusBar style="auto" />
     </View>
   );
@@ -169,7 +237,7 @@ const styles = StyleSheet.create({
   },
   selectedParkContainer: {
     position: "absolute",
-    bottom: 100, // Position above the slider
+    bottom: 100,
     left: 20,
     right: 20,
     backgroundColor: "rgba(255, 255, 255, 0.9)",
@@ -238,6 +306,23 @@ const styles = StyleSheet.create({
   calloutDescription: {
     fontSize: 14,
     color: "#666",
+  },
+  scanButton: {
+    position: "absolute",
+    top: 20,
+    right: 20,
+    backgroundColor: "#2196F3",
+    padding: 10,
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  scanButtonText: {
+    color: "white",
+    fontWeight: "bold",
   },
 });
 
