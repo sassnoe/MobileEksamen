@@ -1,11 +1,8 @@
+// React
 import React, { createContext, useState, useEffect } from "react";
-import {
-  collection,
-  doc,
-  addDoc,
-  getDocs,
-  deleteDoc,
-} from "firebase/firestore";
+
+// Firebase
+import { collection, doc, addDoc, getDocs, deleteDoc } from "firebase/firestore";
 import { firestore, auth } from "../firebase.js";
 
 export const FavoritesContext = createContext();
@@ -85,11 +82,5 @@ export const FavoritesProvider = ({ children }) => {
     loadFavorites();
   }, []);
 
-  return (
-    <FavoritesContext.Provider
-      value={{ favorites, addToFavorites, loadFavorites, removeFromFavorites }}
-    >
-      {children}
-    </FavoritesContext.Provider>
-  );
+  return <FavoritesContext.Provider value={{ favorites, addToFavorites, loadFavorites, removeFromFavorites }}>{children}</FavoritesContext.Provider>;
 };
