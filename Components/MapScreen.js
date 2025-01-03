@@ -86,8 +86,8 @@ const MapScreen = () => {
           key: place.place_id,
           title: place.name,
           description: place.vicinity,
-          rating: park.rating,
-          totalRatings: park.user_ratings_total,
+          rating: place.rating,
+          totalRatings: place.user_ratings_total,
         }));
         setMarkers(newMarkers);
       } catch (error) {
