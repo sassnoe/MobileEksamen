@@ -1,5 +1,11 @@
 import React, { createContext, useState, useEffect } from "react";
-import { collection, doc, addDoc, getDocs } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  addDoc,
+  getDocs,
+  deleteDoc,
+} from "firebase/firestore";
 import { firestore, auth } from "../firebase.js";
 
 export const FavoritesContext = createContext();
@@ -34,6 +40,24 @@ export const FavoritesProvider = ({ children }) => {
       console.error("Error adding document: ", error);
     }
   };
+  const removeFromFavorites = async (id) => {
+    const userId = getUserId();
+    if (!userId) {
+      console.error("No user is logged in.");
+      return;
+    }
+
+    try {
+      const docRef = doc(firestore, "users", userId, "favorites", id);
+
+      await deleteDoc(docRef);
+
+      setFavorites(favorites.filter((favorite) => favorite.id !== id));
+      console.log("Document successfully deleted!");
+    } catch (error) {
+      console.error("Error removing favorite: ", error);
+    }
+  };
 
   // Load favorites from Firestore
   const loadFavorites = async () => {
@@ -63,7 +87,7 @@ export const FavoritesProvider = ({ children }) => {
 
   return (
     <FavoritesContext.Provider
-      value={{ favorites, addToFavorites, loadFavorites }}
+      value={{ favorites, addToFavorites, loadFavorites, removeFromFavorites }}
     >
       {children}
     </FavoritesContext.Provider>

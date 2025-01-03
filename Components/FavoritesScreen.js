@@ -1,10 +1,11 @@
 import React, { useContext, useCallback } from "react";
-import { View, Text, FlatList, StyleSheet } from "react-native";
+import { View, Text, FlatList, StyleSheet, Pressable } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { FavoritesContext } from "./FavoritesContext";
 
 const FavoritesScreen = () => {
-  const { favorites, loadFavorites } = useContext(FavoritesContext);
+  const { favorites, loadFavorites, removeFromFavorites } =
+    useContext(FavoritesContext);
 
   // Reload favorites when the screen is focused
   useFocusEffect(
@@ -12,6 +13,10 @@ const FavoritesScreen = () => {
       loadFavorites();
     }, [])
   );
+
+  const handleRemove = (id) => {
+    removeFromFavorites(id);
+  };
 
   return (
     <View style={styles.container}>
@@ -22,8 +27,19 @@ const FavoritesScreen = () => {
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <View style={styles.favoriteItem}>
-              <Text style={styles.itemTitle}>{item.title}</Text>
-              <Text style={styles.itemDescription}>{item.description}</Text>
+              <View style={styles.favoriteTextContainer}>
+                <Text style={styles.itemTitle}>{item.title}</Text>
+                <Text style={styles.itemDescription}>{item.description}</Text>
+              </View>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.removeButton,
+                  pressed && styles.removeButtonPressed,
+                ]}
+                onPress={() => handleRemove(item.id)}
+              >
+                <Text style={styles.removeButtonText}>Remove</Text>
+              </Pressable>
             </View>
           )}
         />
@@ -47,6 +63,9 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   favoriteItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 16,
     marginVertical: 8,
     backgroundColor: "#f9f9f9",
@@ -57,6 +76,9 @@ const styles = StyleSheet.create({
     shadowRadius: 1.41,
     elevation: 2,
   },
+  favoriteTextContainer: {
+    flex: 1,
+  },
   itemTitle: {
     fontSize: 18,
     fontWeight: "bold",
@@ -64,6 +86,22 @@ const styles = StyleSheet.create({
   itemDescription: {
     fontSize: 14,
     color: "#555",
+  },
+  removeButton: {
+    backgroundColor: "#ff4d4d",
+    padding: 8,
+    borderRadius: 6,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  removeButtonPressed: {
+    backgroundColor: "#e63939",
+    opacity: 0.9,
+  },
+  removeButtonText: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "600",
   },
   noFavorites: {
     fontSize: 16,
