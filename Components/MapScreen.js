@@ -7,6 +7,8 @@ import axios from "axios";
 import Slider from "@react-native-community/slider";
 import { API_KEY } from "../config.js";
 import { Picker } from "@react-native-picker/picker";
+import { Menu, Button, Provider } from "react-native-paper";
+import { FontAwesome } from "@expo/vector-icons";
 
 // Firebase
 import { collection, doc, setDoc } from "firebase/firestore";
@@ -22,6 +24,11 @@ const MapScreen = () => {
     latitudeDelta: 20,
     longitudeDelta: 20,
   });
+
+  const [menuVisible, setMenuVisible] = useState(false);
+
+  const openMenu = () => setMenuVisible(true);
+  const closeMenu = () => setMenuVisible(false);
 
   const [radius, setRadius] = useState(10000);
   const [isScanning, setIsScanning] = useState(false); // New state for scanning toggle
@@ -106,7 +113,7 @@ const MapScreen = () => {
       // Start scanning
       scanIntervalRef.current = setInterval(() => {
         if (region.latitude && region.longitude) {
-          fetchParks(region.latitude, region.longitude, radius);
+          fetchPOIs(region.latitude, region.longitude, radius);
         }
       }, 300000); // 5 minutes
       setIsScanning(true);
@@ -158,83 +165,134 @@ const MapScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.pickerContainer}>
-        <Picker
-          selectedValue={selectedCategory}
-          style={styles.picker}
-          onValueChange={(itemValue) => setSelectedCategory(itemValue)}
-        >
-          <Picker.Item label="Parks" value="park" />
-          <Picker.Item label="Churches" value="church" />
-          <Picker.Item label="Rivers" value="river" />
-          <Picker.Item label="Forests" value="forest" />
-          <Picker.Item label="Lakes" value="lake" />
-        </Picker>
-      </View>
-      <MapView
-        ref={mapView}
-        style={styles.map}
-        region={region}
-        onRegionChangeComplete={setRegion}
-      >
-        {markers.map((marker) => (
-          <Marker
-            key={marker.key}
-            coordinate={marker.coordinate}
-            title={marker.title}
-            onPress={() => handleMarkerPress(marker)}
+    <Provider>
+      <View style={styles.container}>
+        <View style={styles.menuContainer}>
+          <Menu
+            visible={menuVisible}
+            onDismiss={closeMenu}
+            anchor={
+              <Button
+                mode="outlined"
+                onPress={openMenu}
+                style={styles.menuButton}
+              >
+                {selectedCategory.charAt(0).toUpperCase() +
+                  selectedCategory.slice(1)}
+                <FontAwesome
+                  name="caret-down"
+                  size={14}
+                  color="#000"
+                  style={styles.arrowIcon} // Added style for better positioning
+                />
+              </Button>
+            }
           >
-            <Callout>
-              <View style={styles.calloutContainer}>
-                <Text style={styles.calloutTitle}>{marker.title}</Text>
-                <Text style={styles.calloutDescription}>{marker.description}</Text>
-                <Text>
-                  {marker.rating} stars ({marker.totalRatings})
-                </Text>
-              </View>
-            </Callout>
-          </Marker>
-        ))}
-      </MapView>
-
-      {selectedMarker && (
-        <View style={styles.selectedParkContainer}>
-          <Text style={styles.selectedParkText}>
-            Selected: {selectedMarker.title}
-          </Text>
-          <Pressable
-            style={({ pressed }) => [
-              styles.favoriteButton,
-              pressed && styles.favoriteButtonPressed,
-            ]}
-            onPress={addToFavorites}
-          >
-            <Text style={styles.favoriteButtonText}>Add to Favorites</Text>
-          </Pressable>
+            <Menu.Item
+              onPress={() => {
+                setSelectedCategory("park");
+                closeMenu();
+              }}
+              title="Parks"
+            />
+            <Menu.Item
+              onPress={() => {
+                setSelectedCategory("church");
+                closeMenu();
+              }}
+              title="Churches"
+            />
+            <Menu.Item
+              onPress={() => {
+                setSelectedCategory("river");
+                closeMenu();
+              }}
+              title="Rivers"
+            />
+            <Menu.Item
+              onPress={() => {
+                setSelectedCategory("forest");
+                closeMenu();
+              }}
+              title="Forests"
+            />
+            <Menu.Item
+              onPress={() => {
+                setSelectedCategory("lake");
+                closeMenu();
+              }}
+              title="Lakes"
+            />
+          </Menu>
         </View>
-      )}
+        <MapView
+          ref={mapView}
+          style={styles.map}
+          region={region}
+          onRegionChangeComplete={setRegion}
+        >
+          {markers.map((marker) => (
+            <Marker
+              key={marker.key}
+              coordinate={marker.coordinate}
+              title={marker.title}
+              onPress={() => handleMarkerPress(marker)}
+            >
+              <Callout>
+                <View style={styles.calloutContainer}>
+                  <Text style={styles.calloutTitle}>{marker.title}</Text>
+                  <Text style={styles.calloutDescription}>
+                    {marker.description}
+                  </Text>
+                  <Text>
+                    {marker.rating} stars ({marker.totalRatings})
+                  </Text>
+                </View>
+              </Callout>
+            </Marker>
+          ))}
+        </MapView>
 
-      <View style={styles.sliderContainer}>
-        <Text style={styles.radiusText}>
-          View distance: {(radius / 1000).toFixed(1)} km
-        </Text>
-        <Slider
-          style={styles.slider}
-          minimumValue={1000}
-          maximumValue={20000}
-          step={1000}
-          value={radius}
-          onValueChange={(value) => setRadius(value)}
-        />
+        {selectedMarker && (
+          <View style={styles.selectedParkContainer}>
+            <Text style={styles.selectedParkText}>
+              Selected: {selectedMarker.title}
+            </Text>
+            <Pressable
+              style={({ pressed }) => [
+                styles.favoriteButton,
+                pressed && styles.favoriteButtonPressed,
+              ]}
+              onPress={addToFavorites}
+            >
+              <Text style={styles.favoriteButtonText}>Add to Favorites</Text>
+            </Pressable>
+          </View>
+        )}
+
+        <View style={styles.sliderContainer}>
+          <Text style={styles.radiusText}>
+            View distance: {(radius / 1000).toFixed(1)} km
+          </Text>
+          <Slider
+            style={styles.slider}
+            minimumValue={1000}
+            maximumValue={20000}
+            step={1000}
+            value={radius}
+            onValueChange={(value) => setRadius(value)}
+          />
+        </View>
+
+        <Pressable style={styles.scanButton} onPress={toggleScanning}>
+          <Text style={styles.scanButtonText}>
+            {isScanning ? "Stop Scanning" : "Start Scanning"}
+          </Text>
+        </Pressable>
+
+        <StatusBar style="auto" />
       </View>
-
-      <Pressable style={styles.scanButton} onPress={toggleScanning}>
-        <Text style={styles.scanButtonText}>{isScanning ? "Stop Scanning" : "Start Scanning"}</Text>
-      </Pressable>
-
-      <StatusBar style="auto" />
-    </View>
+    </Provider>
   );
 };
 
@@ -244,8 +302,6 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
-    marginTop: 60, // Add margin to avoid overlapping with picker
-    marginBottom: 60, // Add margin to avoid overlapping with slider
   },
   selectedParkContainer: {
     position: "absolute",
@@ -325,34 +381,34 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
   },
-  pickerContainer: {
-    position: "absolute",
-    top: 10, // Adjust to prevent overlap with other elements
-    left: 10,
-    right: 10,
-    backgroundColor: "white",
-    zIndex: 10, // Ensures it appears above other elements
-    paddingHorizontal: 5,
-    paddingVertical: 5,
-    borderRadius: 8,
-  },
-  picker: {
-    height: 50,
-    width: "100%",
-    zIndex: 10, // Ensures picker dropdown remains above other elements
-  },
   sliderContainer: {
     position: "absolute",
-    bottom: 20, // Ensure it doesn't collide with selected park container
+    bottom: 20, 
     left: 10,
     right: 10,
     paddingHorizontal: 20,
     backgroundColor: "rgba(255, 255, 255, 0.8)",
     borderRadius: 8,
-    zIndex: 5, // Lower than picker
+    zIndex: 5, 
   },
   slider: {
     width: "100%",
+  },
+  menuContainer: {
+    position: "absolute",
+    top: 10,
+    left: 10,
+    right: 10,
+    zIndex: 10,
+  },
+  menuButton: {
+    backgroundColor: "white",
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+  },
+  arrowIcon: {
+    marginLeft: 8,
   },
 });
 
