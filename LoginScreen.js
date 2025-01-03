@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, Alert } from "react-native";
+import { View, Text, TextInput, Button, Alert, Image } from "react-native";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "./firebase";
 
@@ -19,7 +19,8 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <View style={{ padding: 16 }}>
-      <Text style={{ fontSize: 24, marginBottom: 16 }}>Login</Text>
+      <Text style={{ fontSize: 24, marginBottom: 16, textAlign: "center" }}>POIFinder</Text>
+      <Image source={require("./assets/POI.jpg")} style={{ height: 300, width: 400, alignSelf: "center", marginBottom: 16 }} />
       <TextInput placeholder="Email" value={email} onChangeText={setEmail} style={{ marginBottom: 8, padding: 8, borderWidth: 1, borderRadius: 4 }} />
       <TextInput
         placeholder="Password"
