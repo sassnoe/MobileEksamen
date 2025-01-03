@@ -3,6 +3,8 @@ import { View, Text, TextInput, Button, Alert, Image } from "react-native";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "./firebase";
 
+import styles from "./LoginScreenStyles";
+
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,22 +20,11 @@ const LoginScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={{ padding: 16 }}>
-      <Text style={{ fontSize: 24, marginBottom: 16, textAlign: "center" }}>POIFinder</Text>
-      <Image source={require("./assets/POI.jpg")} style={{ height: 300, width: 400, alignSelf: "center", marginBottom: 16 }} />
-      <TextInput placeholder="Email" value={email} onChangeText={setEmail} style={{ marginBottom: 8, padding: 8, borderWidth: 1, borderRadius: 4 }} />
-      <TextInput
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        style={{
-          marginBottom: 16,
-          padding: 8,
-          borderWidth: 1,
-          borderRadius: 4,
-        }}
-      />
+    <View style={styles.container}>
+      <Text style={styles.title}>POIFinder</Text>
+      <Image source={require("./assets/POI.jpg")} style={styles.image} />
+      <TextInput placeholder="Email" value={email} onChangeText={setEmail} style={styles.input} />
+      <TextInput placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry style={styles.passwordInput} />
       <Button title="Login" onPress={handleLogin} />
       <Button title="Sign Up" onPress={() => navigation.navigate("SignUp")} color="green" />
     </View>
