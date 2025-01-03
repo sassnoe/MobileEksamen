@@ -1,7 +1,13 @@
+// React
 import React, { useState } from "react";
 import { View, Text, TextInput, Button, Alert } from "react-native";
+
+// Firebase
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "./firebase";
+
+// Styles
+import styles from "./SignUpScreenStyles";
 
 const SignUpScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
@@ -54,42 +60,12 @@ const SignUpScreen = ({ navigation }) => {
   return (
     <View style={{ padding: 16 }}>
       <Text style={{ fontSize: 24, marginBottom: 16 }}>Sign Up</Text>
-      {errorMessage ? (
-        <Text style={{ color: "red", marginBottom: 16 }}>{errorMessage}</Text>
-      ) : null}
-      <TextInput
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        style={{ marginBottom: 8, padding: 8, borderWidth: 1, borderRadius: 4 }}
-      />
-      <TextInput
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        style={{ marginBottom: 8, padding: 8, borderWidth: 1, borderRadius: 4 }}
-      />
-      <TextInput
-        placeholder="Confirm Password"
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-        secureTextEntry
-        style={{
-          marginBottom: 16,
-          padding: 8,
-          borderWidth: 1,
-          borderRadius: 4,
-        }}
-      />
+      {errorMessage ? <Text style={{ color: "red", marginBottom: 16 }}>{errorMessage}</Text> : null}
+      <TextInput placeholder="Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" style={styles.input} />
+      <TextInput placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry style={styles.input} />
+      <TextInput placeholder="Confirm Password" value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry style={styles.confirmPasswordInput} />
       <Button title="Sign Up" onPress={handleSignUp} />
-      <Button
-        title="Already have an account? Log In"
-        onPress={() => navigation.navigate("Login")}
-        color="gray"
-      />
+      <Button title="Already have an account? Log In" onPress={() => navigation.navigate("Login")} color="gray" />
     </View>
   );
 };
