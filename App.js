@@ -6,8 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import LoginScreen from "./LoginScreen";
 import SignUpScreen from "./SignUpScreen";
-import ReviewScreen from "./Components/ReviewScreen";
-import UserScreen from "./Components/UserScreen";
+import FavoritesScreen from "./Components/FavoritesScreen.js";
 import { FavoritesProvider } from "./Components/FavoritesContext";
 
 // MapScreen, should select correct file based on platform
@@ -39,8 +38,7 @@ function MainTabs() {
       })}
     >
       <Tab.Screen name="Map" component={MapScreen} />
-      <Tab.Screen name="Reviews" component={ReviewScreen} />
-      <Tab.Screen name="User" component={UserScreen} />
+      <Tab.Screen name="Favorites" component={FavoritesScreen} />
     </Tab.Navigator>
   );
 }
